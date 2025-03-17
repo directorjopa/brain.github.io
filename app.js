@@ -57,14 +57,16 @@ zones.forEach(zone => {
     });
 });
 
-// Инициализация данных из Telegram Web App
+// Инициализация Mini App
 window.Telegram.WebApp.ready();
 window.Telegram.WebApp.expand();
 
-// Получаем данные от бота
+// Обработчик получения данных от бота
 window.Telegram.WebApp.onEvent("webAppDataReceived", (event) => {
     const data = JSON.parse(event.data);
-    updateUserData(data);
+    if (data.action === "profile_data") {
+        updateUserData(data);
+    }
 });
 
 // Запрос данных у бота при загрузке

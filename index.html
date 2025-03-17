@@ -32,10 +32,6 @@
             background-color: #ff6b6b;
             border-radius: 50%;
             cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        .neuron:hover {
-            background-color: #ff3b3b;
         }
         .description {
             display: none;
@@ -49,37 +45,71 @@
 </head>
 <body>
     <div class="profile">
-        <h1 id="username">Иван Иванов</h1>
-        <p>Дней в боте: <span id="days">15</span></p>
+        <h1 id="username">Загрузка...</h1>
+        <p>Дней в боте: <span id="days">Загрузка...</span></p>
+        <p>Прогресс:</p>
+        <ul>
+            <li>Префронтальная кора: <span id="prefrontal">Загрузка...</span></li>
+            <li>Гиппокамп: <span id="hippocampus">Загрузка...</span></li>
+            <li>Миндалевидное тело: <span id="amygdala">Загрузка...</span></li>
+        </ul>
     </div>
     <div class="brain-container">
         <img src="brain.png" alt="Мозг" class="brain-image">
-        <!-- Нейроны -->
-        <div class="neuron" style="top: 50px; left: 100px;" data-area="Префронтальная кора" data-description="Отвечает за внимание и принятие решений. Развивайте её с помощью медитации."></div>
-        <div class="neuron" style="top: 150px; left: 200px;" data-area="Гиппокамп" data-description="Отвечает за память. Развивайте его с помощью ведения дневника."></div>
-        <div class="neuron" style="top: 200px; left: 50px;" data-area="Миндалевидное тело" data-description="Отвечает за эмоции. Развивайте его с помощью дыхательных упражнений."></div>
+        <div class="neuron" style="top: 50px; left: 100px;" data-area="prefrontal"></div>
+        <div class="neuron" style="top: 150px; left: 200px;" data-area="hippocampus"></div>
+        <div class="neuron" style="top: 200px; left: 50px;" data-area="amygdala"></div>
     </div>
     <div id="description" class="description">
         <h2 id="area-name">Префронтальная кора</h2>
         <p id="area-description">Отвечает за внимание и принятие решений. Развивайте её с помощью медитации.</p>
     </div>
     <script>
-        const neurons = document.querySelectorAll('.neuron');
-        const description = document.getElementById('description');
-        const areaName = document.getElementById('area-name');
-        const areaDescription = document.getElementById('area-description');
+        // Функция для обновления данных
+        function updateProfile(data) {
+            document.getElementById('username').textContent = data.name;
+            document.getElementById('days').textContent = data.days_in_bot;
+            document.getElementById('prefrontal').textContent = `${data.prefrontal_cortex}%`;
+            document.getElementById('hippocampus').textContent = `${data.hippocampus}%`;
+            document.getElementById('amygdala').textContent = `${data.amygdala}%`;
+        }
 
+        // Запрашиваем данные у бота
+        function fetchProfileData() {
+            Telegram.WebApp.sendData(JSON.stringify({ action: "get_profile" }));
+        }
+
+        // Обработчик ответа от бота
+        Telegram.WebApp.onEvent('messageReceived', (event) => {
+            const data = JSON.parse(event.data);
+            if (data.action === "profile_data") {
+                updateProfile(data);
+            }
+        });
+
+        // Запрашиваем данные при загрузке Mini App
+        fetchProfileData();
+
+        // Обработчик кликов на нейроны
+        const neurons = document.querySelectorAll('.neuron');
         neurons.forEach(neuron => {
             neuron.addEventListener('click', () => {
-                // Получаем данные из атрибутов нейрона
                 const area = neuron.getAttribute('data-area');
-                const desc = neuron.getAttribute('data-description');
+                const description = document.getElementById('description');
+                const areaName = document.getElementById('area-name');
+                const areaDescription = document.getElementById('area-description');
 
-                // Обновляем описание
-                areaName.textContent = area;
-                areaDescription.textContent = desc;
+                if (area === 'prefrontal') {
+                    areaName.textContent = 'Префронтальная кора';
+                    areaDescription.textContent = 'Отвечает за внимание и принятие решений. Развивайте её с помощью медитации.';
+                } else if (area === 'hippocampus') {
+                    areaName.textContent = 'Гиппокамп';
+                    areaDescription.textContent = 'Отвечает за память. Развивайте его с помощью ведения дневника.';
+                } else if (area === 'amygdala') {
+                    areaName.textContent = 'Миндалевидное тело';
+                    areaDescription.textContent = 'Отвечает за эмоции. Развивайте его с помощью дыхательных упражнений.';
+                }
 
-                // Показываем блок с описанием
                 description.style.display = 'block';
             });
         });
